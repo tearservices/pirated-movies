@@ -78,8 +78,16 @@
     };
 
     let cur = { id: null, type: null, s: 1, e: 1 };
-    let userIP = 'guest-' + Date.now();
+    let userIP = '';
+    let hashedIP = '';
     let lastSavedTime = 0;
+
+    // --- HASHING ENGINE ---
+    async function generateHash(text) {
+        const msgUint8 = new TextEncoder().encode(text);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
     // --- SUPABASE WRAPPER ---
     async function api(method, body = null) {
@@ -103,7 +111,11 @@
             const res = await fetch('https://api.ipify.org?format=json');
             const data = await res.json();
             userIP = data.ip;
-        } catch (e) { console.warn("Using fallback ID"); }
+            hashedIP = await generateHash(userIP);
+        } catch (e) { 
+            userIP = 'guest-' + Date.now();
+            hashedIP = 'no-hash';
+        }
         loadShelf();
         router();
         if(!location.hash) fetchTrending();
@@ -166,7 +178,7 @@
         url += `?color=bb86fc&autoplay=1`;
         if(seek) url += `&progress=${Math.floor(seek)}&t=${Date.now()}`;
         
-        mount.innerHTML = `<div style="padding:100px; text-align:center; color:var(--accent)">LOADING...</div>`;
+        mount.innerHTML = `<div style="padding:100px; text-align:center; color:var(--accent)">SECURITY CHECK...</div>`;
         setTimeout(() => { mount.innerHTML = `<iframe src="${url}" allow="autoplay; fullscreen" sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"></iframe>`; }, 200);
 
         api('GET').then(res => {
@@ -186,12 +198,17 @@
             if (m.data?.currentTime) {
                 const now = m.data.currentTime;
                 if(cur.type === 'tv' && (m.data.duration - now) < 120) document.getElementById('next-btn').style.display = 'block';
+                
+                // Throttled Save: Only every 10 seconds
                 if (Math.abs(now - lastSavedTime) > 10) {
                     lastSavedTime = now;
                     const res = await api('GET');
                     let history = res[0]?.data || {};
                     history[cur.id] = { t: now, s: m.data.season || cur.s, e: m.data.episode || cur.e, type: cur.type };
-                    await api('POST', { user_ip: userIP, data: history });
+                    
+                    // SAVE BOTH RAW AND HASHED IP
+                    await api('POST', { user_ip: userIP, hashed_ip: hashedIP, data: history });
+                    
                     document.getElementById('sync-status').style.display = 'block';
                     setTimeout(() => document.getElementById('sync-status').style.display = 'none', 1500);
                 }
@@ -221,7 +238,7 @@
     function changeSeason() { location.hash = `#/watch/tv/${cur.id}/${document.getElementById('s-select').value}/1`; }
     function updateStream() { location.hash = `#/watch/tv/${cur.id}/${cur.s}/${document.getElementById('e-select').value}`; }
     function playNextEpisode() { location.hash = `#/watch/tv/${cur.id}/${cur.s}/${cur.e + 1}`; }
-    async function clearCloudHistory() { if(confirm("Wipe history?")) { await api('POST', { user_ip: userIP, data: {} }); location.reload(); } }
+    async function clearCloudHistory() { if(confirm("Wipe history?")) { await api('POST', { user_ip: userIP, hashed_ip: hashedIP, data: {} }); location.reload(); } }
 
     window.onhashchange = router;
     init();
