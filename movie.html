@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus Stream</title>
+    <style>
+        :root {
+            --accent: #bb86fc;
+            --bg: #0d0d0d;
+            --card-bg: #1a1a1a;
+            --text: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- MINIMALIST FRONT PAGE --- */
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            width: 100%;
+            transition: height 0.5s ease;
+        }
+
+        .hero-section.active { height: 20vh; }
+
+        .search-wrapper {
+            position: relative;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        #search {
+            width: 100%;
+            padding: 18px 30px;
+            border-radius: 50px;
+            border: 1px solid #333;
+            background: #111;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+
+        #search:focus { border-color: var(--accent); box-shadow: 0 0 15px rgba(187, 134, 252, 0.2); }
+
+        /* --- RESULTS GRID --- */
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+            width: 90%;
+            max-width: 1200px;
+            padding-bottom: 50px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .card:hover { transform: scale(1.03); }
+        .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
+        .card-info { padding: 10px; font-size: 0.85rem; text-align: center; }
+
+        /* --- CUSTOM PLAYER & DROPDOWNS --- */
+        #overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 2000;
+            flex-direction: column;
+        }
+
+        .player-header {
+            padding: 15px 25px;
+            background: #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .custom-select-group { display: flex; gap: 10px; }
+
+        /* Custom Dropdown Styling */
+        select {
+            appearance: none;
+            background: #252525;
+            color: white;
+            border: 1px solid #444;
+            padding: 8px 35px 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.4-12.8z%22/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px top 50%;
+            background-size: 10px auto;
+        }
+
+        select:focus { border-color: var(--accent); outline: none; }
+        
+        /* Stop the "White Background" on Windows/Chrome */
+        select option { background: #1a1a1a; color: white; }
+
+        .close-btn { 
+            background: none; border: none; color: #777; 
+            font-size: 1.5rem; cursor: pointer; transition: 0.2s;
+        }
+        .close-btn:hover { color: white; transform: rotate(90deg); }
+
+        #iframe-container { flex-grow: 1; background: #000; }
+        iframe { width: 100%; height: 100%; border: none; }
+    </style>
+</head>
+<body>
+
+    <section class="hero-section" id="hero">
+        <div class="search-wrapper">
+            <input type="text" id="search" placeholder="Search for a movie or show..." autocomplete="off">
+        </div>
+    </section>
+
+    <div id="grid"></div>
+
+    <div id="overlay">
+        <div class="player-header">
+            <div class="custom-select-group" id="tv-controls" style="display: none;">
+                <select id="season-dn" onchange="loadEpisodes()"></select>
+                <select id="episode-dn" onchange="stream()"></select>
+            </div>
+            <div id="title-display" style="font-weight: bold; opacity: 0.8;"></div>
+            <button class="close-btn" onclick="closePlayer()">✕</button>
+        </div>
+        <div id="iframe-container"></div>
+    </div>
+
+    <script>
+        const API_KEY = 'ebbc810d0c9a9a4a13a264f96897036e';
+        const searchInput = document.getElementById('search');
+        let activeID = '';
+        let activeType = '';
+
+        // Trigger search
+        searchInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                document.getElementById('hero').classList.add('active');
+                performSearch(e.target.value);
+            }
+        });
+
+        async function performSearch(query) {
+            const res = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&query=${query}`);
+            const data = await res.json();
+            renderResults(data.results);
+        }
+
+        function renderResults(items) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = items.map(item => {
+                if (!item.poster_path) return '';
+                const title = item.title || item.name;
+                const type = item.media_type || (item.first_air_date ? 'tv' : 'movie');
+                return `
+                    <div class="card" onclick="initMedia('${type}', '${item.id}', '${title.replace(/'/g, "")}')">
+                        <img src="https://image.tmdb.org/t/p/w500${item.poster_path}">
+                        <div class="card-info">${title}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function initMedia(type, id, title) {
+            activeID = id;
+            activeType = type;
+            document.getElementById('title-display').innerText = title;
+            document.getElementById('overlay').style.display = 'flex';
+
+            if (type === 'tv') {
+                document.getElementById('tv-controls').style.display = 'flex';
+                const r = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}`);
+                const data = await r.json();
+                // Filter out "Season 0 / Specials" usually
+                document.getElementById('season-dn').innerHTML = data.seasons
+                    .map(s => `<option value="${s.season_number}">${s.name}</option>`).join('');
+                await loadEpisodes();
+            } else {
+                document.getElementById('tv-controls').style.display = 'none';
+                stream();
+            }
+        }
+
+        async function loadEpisodes() {
+            const s = document.getElementById('season-dn').value;
+            const r = await fetch(`https://api.themoviedb.org/3/tv/${activeID}/season/${s}?api_key=${API_KEY}`);
+            const data = await r.json();
+            document.getElementById('episode-dn').innerHTML = data.episodes
+                .map(e => `<option value="${e.episode_number}">Ep ${e.episode_number}: ${e.name}</option>`).join('');
+            stream();
+        }
+
+        function stream() {
+            const s = document.getElementById('season-dn').value;
+            const e = document.getElementById('episode-dn').value;
+            const url = activeType === 'movie' 
+                ? `https://www.vidking.net/embed/movie/${activeID}?color=bb86fc` 
+                : `https://www.vidking.net/embed/tv/${activeID}/${s}/${e}?color=bb86fc`;
+            
+            document.getElementById('iframe-container').innerHTML = `
+                <iframe src="${url}" allowfullscreen sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"></iframe>
+            `;
+        }
+
+        function closePlayer() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('iframe-container').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
