@@ -2,246 +2,282 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus | Private Cinema</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Private Cinema</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;500;800&display=swap" rel="stylesheet">
     <style>
-        :root { --accent: #bb86fc; --bg: #080808; --surface: #121212; --glass: rgba(255, 255, 255, 0.03); --border: rgba(255, 255, 255, 0.08); }
-        * { box-sizing: border-box; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: #fff; margin: 0; overflow-x: hidden; background-image: radial-gradient(circle at 50% -20%, #1a1a2e 0%, var(--bg) 80%); }
-        nav { position: sticky; top: 0; z-index: 1000; padding: 20px 5%; backdrop-filter: blur(25px); background: rgba(8, 8, 8, 0.7); border-bottom: 1px solid var(--border); display: flex; justify-content: center; }
-        #search { width: 100%; max-width: 600px; background: var(--glass); border: 1px solid var(--border); padding: 15px 25px; border-radius: 14px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
-        .container { padding: 30px 5%; }
-        section { margin-bottom: 50px; animation: fadeIn 0.8s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        h2 { font-weight: 700; font-size: 1.4rem; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; }
-        .clear-btn { font-size: 0.7rem; color: #ff5555; cursor: pointer; opacity: 0.6; text-transform: uppercase; border: 1px solid #ff5555; padding: 4px 8px; border-radius: 4px; }
-        .shelf { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; }
-        .shelf::-webkit-scrollbar { display: none; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 30px; }
-        .card { background: var(--surface); border-radius: 20px; overflow: hidden; cursor: pointer; transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); border: 1px solid var(--border); position: relative; flex: 0 0 220px; }
-        .card:hover { transform: translateY(-10px); border-color: var(--accent); }
-        .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; }
-        .card-info { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); position: absolute; bottom: 0; width: 100%; }
-        .card-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-meta { font-size: 0.75rem; color: var(--accent); font-weight: 700; }
-        #player-view { display: none; position: fixed; inset: 0; background: #000; z-index: 2000; flex-direction: column; }
-        .player-bar { height: 70px; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; background: #080808; border-bottom: 1px solid var(--border); }
-        .video-container { flex: 1; position: relative; }
-        iframe { width: 100%; height: 100%; border: none; }
-        .btn { background: #1a1a1a; color: #fff; border: 1px solid var(--border); padding: 10px 22px; border-radius: 12px; font-weight: 600; cursor: pointer; }
-        select { background: #1a1a1a; color: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 10px; }
-        #resume-btn { position: absolute; bottom: 40px; right: 40px; background: var(--accent); color: #000; padding: 22px 35px; border-radius: 18px; font-weight: 800; cursor: pointer; display: none; z-index: 3000; border: 2px solid #fff; }
-        #next-btn { position: absolute; bottom: 40px; left: 40px; background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: #fff; padding: 15px 25px; border-radius: 12px; font-weight: 700; cursor: pointer; display: none; z-index: 3000; border: 1px solid var(--border); }
-        #sync-status { position: fixed; top: 90px; right: 20px; font-size: 10px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 800; display: none; }
+        :root { 
+            --accent: #bb86fc; 
+            --bg: #000000; 
+            --surface: rgba(40, 40, 40, 0.9); 
+            --border: rgba(255, 255, 255, 0.15); 
+            --danger: #ff4444; 
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        /* Force Black Background */
+        body, html { 
+            margin: 0; padding: 0; 
+            background-color: var(--bg) !important; 
+            color: #ffffff !important; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            height: 100%; overflow: hidden; 
+        }
+
+        /* Profile Selection */
+        #profile-screen { position: fixed; inset: 0; background: var(--bg); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .profile-grid { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+        .profile-card { position: relative; text-align: center; width: 140px; }
+        .avatar { width: 140px; height: 140px; background: #1a1a1a; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 4rem; border: 4px solid transparent; color: #444; cursor: pointer; transition: 0.25s; }
+        .profile-card:hover .avatar, .profile-card:focus .avatar { border-color: #fff; transform: scale(1.05); color: #fff; }
+        .del-x { position: absolute; top: -10px; right: -10px; background: var(--danger); color: white; border-radius: 50%; width: 28px; height: 28px; display: none; align-items: center; justify-content: center; font-weight: 800; cursor: pointer; z-index: 10; border: 2px solid #000; }
+        .manage-mode .del-x { display: flex; }
+
+        /* Navigation */
+        nav { padding: 25px 5%; display: flex; align-items: center; gap: 30px; position: fixed; width: 100%; z-index: 100; background: linear-gradient(to bottom, black, transparent); }
+        .search-wrap { flex: 1; position: relative; max-width: 500px; }
+        #search { width: 100%; padding: 12px 20px; border-radius: 4px; border: 1px solid var(--border); background: rgba(255,255,255,0.1); color: #fff; outline: none; border: 1px solid var(--border); }
+        #autofill { position: absolute; top: 110%; left: 0; right: 0; background: #111; border: 1px solid var(--border); border-radius: 4px; display: none; max-height: 350px; overflow-y: auto; z-index: 200; }
+        .suggest-item { padding: 10px; display: flex; gap: 15px; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border); color: #fff; }
+
+        /* Main UI */
+        #main-ui { display: none; height: 100vh; flex-direction: column; background: var(--bg); }
+        .scroller { flex: 1; overflow-y: auto; padding: 120px 5% 50px; scrollbar-width: none; }
+        .shelf { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 20px; scrollbar-width: none; }
+        .card-wrap { position: relative; flex: 0 0 180px; }
+        .card { width: 100%; border-radius: 4px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: 0.25s; }
+        .card:hover { border-color: #fff; transform: scale(1.05); }
+        .card img { width: 100%; aspect-ratio: 2/3; object-fit: cover; display: block; }
+
+        /* Cinema Player Top Bar */
+        #player-view { display: none; position: fixed; inset: 0; background: #000; z-index: 10000; }
+        iframe { width: 100%; height: 100%; border: none; background: #000; }
+        
+        .player-top-bar { 
+            position: absolute; top: 0; left: 0; right: 0; 
+            padding: 20px; display: flex; align-items: center; gap: 15px; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent); 
+            z-index: 10001; opacity: 0; transition: 0.4s ease;
+        }
+        #player-view:hover .player-top-bar { opacity: 1; }
+
+        .btn-base { 
+            background: var(--surface); color: #fff !important; border: 1px solid var(--border); 
+            padding: 10px 18px; border-radius: 6px; font-weight: 600; 
+            cursor: pointer; backdrop-filter: blur(15px); transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        .btn-base:hover { background: rgba(80, 80, 80, 1); border-color: #fff; }
+        .btn-exit { background: #fff !important; color: #000 !important; border: none; }
+
+        /* Custom Styled Selectors - High Visibility */
+        .custom-select-wrap { position: relative; display: flex; }
+        select.custom-select {
+            appearance: none; -webkit-appearance: none;
+            background: #222 !important; 
+            color: #ffffff !important; 
+            border: 1px solid var(--border);
+            padding: 10px 40px 10px 15px; border-radius: 6px; cursor: pointer;
+            font-family: inherit; font-size: 0.85rem; font-weight: 600;
+            outline: none;
+        }
+        select.custom-select option {
+            background: #111;
+            color: #fff;
+        }
+        .custom-select-wrap::after {
+            content: '▼'; font-size: 0.6rem; position: absolute; right: 15px; top: 50%;
+            transform: translateY(-50%); pointer-events: none; color: #fff;
+        }
+
+        @media (max-width: 700px) { .card-wrap { flex: 0 0 130px; } }
     </style>
 </head>
 <body>
 
-<div id="sync-status">● Cloud Syncing</div>
+<div id="profile-screen">
+    <h1 style="font-weight: 300; margin-bottom: 50px; letter-spacing: 2px;">WHO'S WATCHING?</h1>
+    <div id="profile-list" class="profile-grid"></div>
+    <div style="display: flex; gap: 10px;">
+        <button onclick="addProfile()" class="btn-base">Add Profile</button>
+        <button id="manage-profiles-btn" onclick="toggleProfileManage()" class="btn-base">Manage</button>
+    </div>
+</div>
 
 <div id="main-ui">
-    <nav><input type="text" id="search" placeholder="Search movies, TV shows..." autocomplete="off"></nav>
-    <div class="container">
-        <section id="continue-section" style="display: none;">
-            <h2>Continue Watching <span class="clear-btn" onclick="clearCloudHistory()">Clear All</span></h2>
-            <div id="continue-shelf" class="shelf"></div>
+    <nav>
+        <div style="font-weight: 800; font-size: 1.2rem; cursor: pointer; color: #fff;" onclick="location.hash='/'">CINEMA</div>
+        <div class="search-wrap">
+            <input type="text" id="search" placeholder="Search..." autocomplete="off">
+            <div id="autofill"></div>
+        </div>
+        <div id="user-tag" style="font-weight:800; color:var(--accent); font-size: 0.8rem; letter-spacing: 1px;"></div>
+    </nav>
+
+    <div class="scroller">
+        <section id="history-sec" style="display: none;">
+            <h2 style="font-size:0.7rem; color:#888; letter-spacing:2px; text-transform:uppercase;">Continue Watching <button id="manage-history-btn" onclick="toggleHistoryManage()" style="background:none; border:none; color:var(--accent); cursor:pointer; font-size: 0.7rem; margin-left:10px;">[EDIT]</button></h2>
+            <div id="history-shelf" class="shelf"></div>
         </section>
         <section>
-            <h2 id="discover-label">Trending Now</h2>
-            <div id="grid" class="grid"></div>
+            <h2 style="font-size:0.7rem; color:#888; letter-spacing:2px; text-transform:uppercase;">Trending Now</h2>
+            <div id="grid" class="shelf"></div>
         </section>
     </div>
 </div>
 
 <div id="player-view">
-    <div class="player-bar">
-        <button class="btn" onclick="location.hash='#/'">EXIT</button>
-        <div id="tv-controls" style="display:none; gap: 12px;">
-            <select id="s-select" onchange="changeSeason()"></select>
-            <select id="e-select" onchange="updateStream()"></select>
+    <div class="player-top-bar">
+        <button class="btn-base btn-exit" onclick="history.back()">EXIT</button>
+        <div id="series-controls" style="display: none; gap: 10px;">
+            <div class="custom-select-wrap">
+                <select id="s-select" class="custom-select" onchange="changeEp()"></select>
+            </div>
+            <div class="custom-select-wrap">
+                <select id="e-select" class="custom-select" onchange="changeEp()"></select>
+            </div>
         </div>
-        <span id="p-title" style="opacity: 0.4; font-size: 0.8rem;"></span>
     </div>
-    <div class="video-container">
-        <div id="resume-btn">RESUME S<span id="res-s"></span> E<span id="res-e"></span> @ <span id="res-t"></span>m</div>
-        <div id="next-btn" onclick="playNextEpisode()">NEXT EPISODE →</div>
-        <div id="player-mount" style="height: 100%;"></div>
-    </div>
+    <div id="player-mount" style="height: 100%;"></div>
 </div>
 
 <script>
     const CONFIG = {
-        SUPA_URL: 'https://nkjizlebtlmgmtqaonot.supabase.co',
-        SUPA_KEY: 'sb_publishable_6orhng6zssRe45KcOFnqXQ_78xgw6Oc',
-        TMDB_KEY: 'ebbc810d0c9a9a4a13a264f96897036e'
+        DB_URL: 'https://nkjizlebtlmgmtqaonot.supabase.co',
+        DB_KEY: 'sb_publishable_6orhng6zssRe45KcOFnqXQ_78xgw6Oc',
+        TMDB: 'ebbc810d0c9a9a4a13a264f96897036e'
     };
 
-    let cur = { id: null, type: null, s: 1, e: 1 };
-    let userIP = '';
-    let hashedIP = '';
-    let lastSavedTime = 0;
-
-    // --- HASHING ENGINE ---
-    async function generateHash(text) {
-        const msgUint8 = new TextEncoder().encode(text);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    // --- SUPABASE WRAPPER ---
-    async function api(method, body = null) {
-        try {
-            const options = {
-                method,
-                headers: { 
-                    'apikey': CONFIG.SUPA_KEY, 'Authorization': `Bearer ${CONFIG.SUPA_KEY}`, 
-                    'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates'
-                }
-            };
-            if (body) options.body = JSON.stringify(body);
-            const url = `${CONFIG.SUPA_URL}/rest/v1/watch_history${method === 'GET' ? `?user_ip=eq.${userIP}` : ''}`;
-            const res = await fetch(url, options);
-            return res.ok ? await res.json() : [];
-        } catch (e) { return []; }
-    }
-
-    async function init() {
-        try {
-            const res = await fetch('https://api.ipify.org?format=json');
-            const data = await res.json();
-            userIP = data.ip;
-            hashedIP = await generateHash(userIP);
-        } catch (e) { 
-            userIP = 'guest-' + Date.now();
-            hashedIP = 'no-hash';
-        }
-        loadShelf();
-        router();
-        if(!location.hash) fetchTrending();
-    }
-
-    async function loadShelf() {
-        const data = await api('GET');
-        if (data?.[0]?.data) {
-            const shelf = document.getElementById('continue-shelf');
-            const entries = Object.entries(data[0].data).reverse().slice(0, 10);
-            if (entries.length === 0) return;
-            document.getElementById('continue-section').style.display = 'block';
-            shelf.innerHTML = '';
-            for (const [id, meta] of entries) {
-                const r = await fetch(`https://api.themoviedb.org/3/${meta.type||'movie'}/${id}?api_key=${CONFIG.TMDB_KEY}`);
-                const movie = await r.json();
-                shelf.innerHTML += `<div class="card" onclick="handleEntry('${meta.type||'movie'}','${id}')">
-                    <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}"><div class="card-info">
-                    <div class="card-title">${movie.title||movie.name}</div><div class="card-meta">S${meta.s} E${meta.e}</div></div></div>`;
-            }
-        }
-    }
-
-    async function handleEntry(type, id) {
-        const result = await api('GET');
-        const saved = result[0]?.data?.[id];
-        location.hash = (type === 'tv' && saved) ? `#/watch/tv/${id}/${saved.s}/${saved.e}` : `#/watch/${type}/${id}`;
-    }
+    let accounts = JSON.parse(localStorage.getItem('cinema_accounts') || '[]');
+    let activeUser = null, isManageProfiles = false, isManageHistory = false;
 
     async function router() {
-        const h = location.hash;
-        if(!h.startsWith('#/watch/')) {
-            document.getElementById('player-view').style.display = 'none';
-            document.getElementById('player-mount').innerHTML = '';
-            loadShelf(); return;
-        }
-        const p = h.split('/');
-        cur = { type: p[2], id: p[3], s: parseInt(p[4])||1, e: parseInt(p[5])||1 };
-        document.getElementById('player-view').style.display = 'flex';
-        const r = await fetch(`https://api.themoviedb.org/3/${cur.type}/${cur.id}?api_key=${CONFIG.TMDB_KEY}`);
-        const data = await r.json();
-        document.getElementById('p-title').innerText = data.title || data.name;
+        const hash = location.hash.slice(2);
+        const parts = hash.split('/');
+        if (!hash || hash === '/') { showView('profile-screen'); renderProfiles(); return; }
         
-        if(cur.type === 'tv') {
-            document.getElementById('tv-controls').style.display = 'flex';
-            const epRes = await fetch(`https://api.themoviedb.org/3/tv/${cur.id}/season/${cur.s}?api_key=${CONFIG.TMDB_KEY}`);
-            const epData = await epRes.json();
-            document.getElementById('s-select').innerHTML = data.seasons.map(s => `<option value="${s.season_number}" ${s.season_number == cur.s ? 'selected' : ''}>${s.name}</option>`).join('');
-            document.getElementById('e-select').innerHTML = epData.episodes.map(e => `<option value="${e.episode_number}" ${e.episode_number == cur.e ? 'selected' : ''}>Ep ${e.episode_number}</option>`).join('');
-        } else document.getElementById('tv-controls').style.display = 'none';
+        activeUser = parts[0];
+        document.getElementById('user-tag').innerText = activeUser.toUpperCase();
         
-        startStream();
+        if (parts.length === 1) { showView('main-ui'); initCinema(); }
+        else { showView('player-view'); loadPlayer(parts[1], parts[2], parts[3]||1, parts[4]||1); }
     }
 
-    function startStream(seek = null) {
+    function showView(id) {
+        ['profile-screen', 'main-ui', 'player-view'].forEach(v => document.getElementById(v).style.display = (v === id ? (id==='player-view'?'block':'flex') : 'none'));
+    }
+
+    function renderProfiles() {
+        const list = document.getElementById('profile-list');
+        list.className = `profile-grid ${isManageProfiles ? 'manage-mode' : ''}`;
+        list.innerHTML = accounts.map(user => `
+            <div class="profile-card">
+                <div class="del-x" onclick="deleteProfile('${user}')">×</div>
+                <div class="avatar" onclick="isManageProfiles ? null : location.hash='#/${user}'">${user[0].toUpperCase()}</div>
+                <div style="margin-top:10px; color:#fff; font-size:0.8rem;">${user}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggleProfileManage() { isManageProfiles = !isManageProfiles; renderProfiles(); }
+    function deleteProfile(u) { accounts = accounts.filter(a => a !== u); localStorage.setItem('cinema_accounts', JSON.stringify(accounts)); renderProfiles(); }
+    function addProfile() { const n = prompt("Username:"); if (n && !accounts.includes(n)) { accounts.push(n); localStorage.setItem('cinema_accounts', JSON.stringify(accounts)); renderProfiles(); } }
+    function toggleHistoryManage() { isManageHistory = !isManageHistory; document.getElementById('history-shelf').classList.toggle('manage-mode'); }
+
+    async function loadPlayer(type, id, s, e) {
         const mount = document.getElementById('player-mount');
-        const btn = document.getElementById('resume-btn');
-        document.getElementById('next-btn').style.display = 'none';
-        let url = cur.type === 'movie' ? `https://www.vidking.net/embed/movie/${cur.id}` : `https://www.vidking.net/embed/tv/${cur.id}/${cur.s}/${cur.e}`;
-        url += `?color=bb86fc&autoplay=1`;
-        if(seek) url += `&progress=${Math.floor(seek)}&t=${Date.now()}`;
+        const ctrl = document.getElementById('series-controls');
+        const url = type === 'movie' ? `https://www.vidking.net/embed/movie/${id}` : `https://www.vidking.net/embed/tv/${id}/${s}/${e}`;
         
-        mount.innerHTML = `<div style="padding:100px; text-align:center; color:var(--accent)">SECURITY CHECK...</div>`;
-        setTimeout(() => { mount.innerHTML = `<iframe src="${url}" allow="autoplay; fullscreen" sandbox="allow-forms allow-scripts allow-same-origin allow-presentation"></iframe>`; }, 200);
-
-        api('GET').then(res => {
-            const saved = res[0]?.data?.[cur.id];
-            if(saved && saved.t > 15 && !seek && (cur.type === 'movie' || (saved.s == cur.s && saved.e == cur.e))) {
-                btn.style.display = 'block';
-                document.getElementById('res-s').innerText = saved.s; document.getElementById('res-e').innerText = saved.e;
-                document.getElementById('res-t').innerText = Math.floor(saved.t / 60);
-                btn.onclick = () => { btn.style.display = 'none'; startStream(saved.t); };
-            }
-        });
+        mount.innerHTML = `<iframe src="${url}?autoplay=1" allow="autoplay; fullscreen" sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation"></iframe>`;
+        
+        if(type === 'tv') {
+            ctrl.style.display = 'flex';
+            const res = await fetch(`https://api.themoviedb.org/3/tv/${id}?api_key=${CONFIG.TMDB}`);
+            const data = await res.json();
+            document.getElementById('s-select').innerHTML = data.seasons.filter(sea => sea.season_number > 0).map(sea => `<option value="${sea.season_number}" ${sea.season_number == s ? 'selected':''}>Season ${sea.season_number}</option>`).join('');
+            
+            const epRes = await fetch(`https://api.themoviedb.org/3/tv/${id}/season/${s}?api_key=${CONFIG.TMDB}`);
+            const epData = await epRes.json();
+            document.getElementById('e-select').innerHTML = epData.episodes.map(ep => `<option value="${ep.episode_number}" ${ep.episode_number == e ? 'selected':''}>Ep ${ep.episode_number}: ${ep.name}</option>`).join('');
+        } else { ctrl.style.display = 'none'; }
+        saveProgress(id, type, s, e);
     }
 
-    window.addEventListener('message', async (e) => {
-        try {
-            let m = (typeof e.data === 'string') ? JSON.parse(e.data) : e.data;
-            if (m.data?.currentTime) {
-                const now = m.data.currentTime;
-                if(cur.type === 'tv' && (m.data.duration - now) < 120) document.getElementById('next-btn').style.display = 'block';
-                
-                // Throttled Save: Only every 10 seconds
-                if (Math.abs(now - lastSavedTime) > 10) {
-                    lastSavedTime = now;
-                    const res = await api('GET');
-                    let history = res[0]?.data || {};
-                    history[cur.id] = { t: now, s: m.data.season || cur.s, e: m.data.episode || cur.e, type: cur.type };
-                    
-                    // SAVE BOTH RAW AND HASHED IP
-                    await api('POST', { user_ip: userIP, hashed_ip: hashedIP, data: history });
-                    
-                    document.getElementById('sync-status').style.display = 'block';
-                    setTimeout(() => document.getElementById('sync-status').style.display = 'none', 1500);
-                }
+    function changeEp() {
+        const hash = location.hash.split('/');
+        const s = document.getElementById('s-select').value;
+        const e = document.getElementById('e-select').value;
+        location.hash = `#/${activeUser}/tv/${hash[3]}/${s}/${e}`;
+    }
+
+    async function db(method, body = null) {
+        const options = { method, headers: { 'apikey': CONFIG.DB_KEY, 'Authorization': `Bearer ${CONFIG.DB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }};
+        if (body) options.body = JSON.stringify(body);
+        const url = `${CONFIG.DB_URL}/rest/v1/watch_history?user_ip=eq.${encodeURIComponent(activeUser)}`;
+        const res = await fetch(url, options);
+        return res.ok ? await res.json() : [];
+    }
+
+    async function saveProgress(id, type, s, e) {
+        const res = await db('GET');
+        let history = res[0]?.data || {};
+        history[id] = { type, s, e, last: Date.now() };
+        await db('POST', { user_ip: activeUser, data: history });
+    }
+
+    async function deleteHistoryItem(id) {
+        const res = await db('GET');
+        let history = res[0]?.data || {};
+        delete history[id];
+        await db('POST', { user_ip: activeUser, data: history });
+        loadHistory();
+    }
+
+    async function initCinema() {
+        loadHistory();
+        const r = await fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${CONFIG.TMDB}`);
+        const d = await r.json();
+        document.getElementById('grid').innerHTML = d.results.map(i => `
+            <div class="card-wrap"><div class="card" onclick="location.hash='#/${activeUser}/${i.media_type||'movie'}/${i.id}'">
+                <img src="https://image.tmdb.org/t/p/w500${i.poster_path}">
+            </div></div>`).join('');
+    }
+
+    async function loadHistory() {
+        const data = await db('GET');
+        const shelf = document.getElementById('history-shelf');
+        if (data?.[0]?.data && Object.keys(data[0].data).length > 0) {
+            document.getElementById('history-sec').style.display = 'block';
+            shelf.innerHTML = '';
+            const entries = Object.entries(data[0].data).sort((a,b) => b[1].last - a[1].last).slice(0, 12);
+            for (const [id, meta] of entries) {
+                const r = await fetch(`https://api.themoviedb.org/3/${meta.type}/${id}?api_key=${CONFIG.TMDB}`);
+                const m = await r.json();
+                const route = meta.type === 'tv' ? `${meta.type}/${id}/${meta.s}/${meta.e}` : `${meta.type}/${id}`;
+                shelf.innerHTML += `<div class="card-wrap"><div class="del-x" onclick="deleteHistoryItem('${id}')">×</div><div class="card" onclick="isManageHistory ? null : location.hash='#/${activeUser}/${route}'"><img src="https://image.tmdb.org/t/p/w342${m.poster_path}"></div></div>`;
             }
-        } catch(err) {}
+        } else { document.getElementById('history-sec').style.display = 'none'; }
+    }
+
+    const sInput = document.getElementById('search');
+    const sDrop = document.getElementById('autofill');
+    sInput.addEventListener('input', async () => {
+        if (sInput.value.length < 2) { sDrop.style.display = 'none'; return; }
+        const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${CONFIG.TMDB}&query=${encodeURIComponent(sInput.value)}`);
+        const d = await r.json();
+        sDrop.innerHTML = d.results.filter(i => i.poster_path).slice(0, 5).map(i => `
+            <div class="suggest-item" onclick="location.hash='#/${activeUser}/${i.media_type||'movie'}/${i.id}'">
+                <img src="https://image.tmdb.org/t/p/w92${i.poster_path}" style="width:30px; height:45px; object-fit:cover; border-radius:2px;">
+                <span style="font-size:0.85rem;">${i.title||i.name}</span>
+            </div>`).join('');
+        sDrop.style.display = 'block';
     });
-
-    async function fetchTrending() {
-        const r = await fetch(`https://api.themoviedb.org/3/trending/all/day?api_key=${CONFIG.TMDB_KEY}`);
-        const d = await r.json();
-        document.getElementById('grid').innerHTML = d.results.map(i => {
-            const type = i.media_type || (i.first_air_date ? 'tv' : 'movie');
-            return `<div class="card" onclick="handleEntry('${type}','${i.id}')"><img src="https://image.tmdb.org/t/p/w500${i.poster_path}"><div class="card-info"><div class="card-title">${i.title||i.name}</div></div></div>`;
-        }).join('');
-    }
-
-    document.getElementById('search').onkeypress = async (e) => { if(e.key === 'Enter') {
-        const r = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${CONFIG.TMDB_KEY}&query=${e.target.value}`);
-        const d = await r.json();
-        document.getElementById('grid').innerHTML = d.results.map(i => {
-            const type = i.media_type || (i.first_air_date ? 'tv' : 'movie');
-            if(!i.poster_path) return '';
-            return `<div class="card" onclick="handleEntry('${type}','${i.id}')"><img src="https://image.tmdb.org/t/p/w500${i.poster_path}"><div class="card-info"><div class="card-title">${i.title||i.name}</div></div></div>`;
-        }).join('');
-    }};
-
-    function changeSeason() { location.hash = `#/watch/tv/${cur.id}/${document.getElementById('s-select').value}/1`; }
-    function updateStream() { location.hash = `#/watch/tv/${cur.id}/${cur.s}/${document.getElementById('e-select').value}`; }
-    function playNextEpisode() { location.hash = `#/watch/tv/${cur.id}/${cur.s}/${cur.e + 1}`; }
-    async function clearCloudHistory() { if(confirm("Wipe history?")) { await api('POST', { user_ip: userIP, hashed_ip: hashedIP, data: {} }); location.reload(); } }
+    document.addEventListener('click', e => { if(!e.target.closest('.search-wrap')) sDrop.style.display = 'none'; });
 
     window.onhashchange = router;
-    init();
+    router();
 </script>
 </body>
 </html>
